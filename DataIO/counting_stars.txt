@@ -1,0 +1,73 @@
+http://imgsrc.hubblesite.org/hu/db/images/hs-2002-10-c-large_web.jpg
+threshold:600
+
+response = requests.get("http://imgsrc.hubblesite.org/hu/db/images/hs-2002-10-c-large_web.jpg")
+pic = Image.open(StringIO(response.content))
+
+from time import time
+def elapsed(func, picture, function):
+    start = time()
+    result = func(picture, function)
+    return time() - start, result, function
+
+def monochrome(picture, threshold):
+    black = (0, 0, 0)
+    white = (255, 255, 255)
+    xsize, ysize = picture.size
+    temp = picture.load()
+    for x in range(xsize):
+        for y in range(ysize):
+            r, g, b = temp[x,y]
+            if r+g+b >= threshold:
+                temp[x,y] = black
+            else:
+                temp[x,y] = white
+
+bwpic = Image.open(StringIO(response.content))
+
+monochrome(bwpic, 200+200+200)
+plt.imshow(bwpic)
+
+def fill(picture, xsize, ysize, xstart, ystart):
+    queue = [(xstart, ystart)]
+    while queue:
+        x,y,queue = queue[0][0], queue[0][1], queue[1:]
+        if picture[x,y] == BLACK:
+            picture[x,y] = RED
+            if x > 0:
+                queue.append((x-1, y))
+            if x < (xsize - 1):
+                queue.append((x + 1, y))
+            if y > 0:
+                queue.append((x, y - 1))
+            if y < (ysize - 1):
+                queue.append((x, y + 1))
+                
+def fillrec(picture, xsize, ysize, x, y):
+    if picture[x, y] != BLACK:
+        return
+    picture[x, y] = RED
+    if x > 0:
+        fillrec(picture, xsize, ysize, x-1, y)
+    if x < (xsize - 1):
+        fillrec(picture, xsize, ysize, x+1, y)
+    if y > 0:
+        fillrec(picture, xsize, ysize, x, y-1)
+    if y < (ysize - 1):
+        fillrec(picture, xsize, ysize, x, y+1)
+
+BLACK = (0,0,0)
+RED = (255,0,0)
+def count(picture, function):
+    xsize, ysize = picture.size
+    temp = picture.load()
+    result = 0
+    for x in range(xsize):
+        for y in range(ysize):
+            if temp[x,y] == BLACK:
+                result += 1
+                function(temp,xsize,ysize,x,y)
+    return result
+
+time to process: 0.23408007621765137
+number of stars: 246
